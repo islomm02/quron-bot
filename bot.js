@@ -1,7 +1,6 @@
 
 const { Telegraf, Markup } = require('telegraf');
 const axios = require('axios');
-const fs = require('fs');
 
 const token = '7312724138:AAHN4sU23VVKucKbVZhKB41M3FoWoNwjiIo'; 
 const bot = new Telegraf(token);
@@ -46,89 +45,74 @@ async function surahGet(surah) {
 async function ayahGet(ayah) {
     try {
         const response = await axios.get(`https://api.alquran.cloud/v1/ayah/${ayah}/ar.alafasy`);
-        return response.data.data.audio;
+        return response.data.data;
     } catch (error) {
         return null;
     }
 }
 
 bot.start((ctx) => {
-    try {
-      ctx.reply(
+    ctx.reply(
         "📖 *Xush kelibsiz!* Ushbu bot orqali Qur’on oyatlarini va suralarini eshitishingiz mumkin. 👇",
-        Markup.keyboard([
-            ["📖 Suralar", "📜 Oyatlar"]
-        ])
-        .oneTime(false)
-        .resize()
+        Markup.keyboard([["📖 Suralar", "📜 Oyatlar"]]).resize()
     );
-    } catch (error) {
-      console.log(error.message);
-      ctx.reply("Serverda xatolik yuz berdi. Iltimos keyinroq qayta urinib ko'ring");
-      
-    }
 });
 
 bot.hears("📖 Suralar", (ctx) => {
-    try {
-      ctx.reply("📖 Iltimos, kerakli sura raqamini yoki nomini yuboring (masalan: *2* yoki *Baqara*).");
+    ctx.reply("📖 Iltimos, kerakli sura raqamini yoki nomini yuboring (masalan: *2* yoki *Baqara*).");
     isSurah = true;
-    } catch (error) {
-      console.log(error.message);
-      ctx.reply("Serverda xatolik yuz berdi. Iltimos keyinroq qayta urinib ko'ring");
-      
-    }
 });
 
 bot.hears("📜 Oyatlar", (ctx) => {
-    try {
-      ctx.reply("📜 Iltimos, kerakli oyat raqamini yuboring (1-6236).");
+    ctx.reply("📜 Iltimos, kerakli oyat raqamini yuboring (1-6236).");
     isSurah = false;
-    } catch (error) {
-      console.log(error.message);
-      ctx.reply("Serverda xatolik yuz berdi. Iltimos keyinroq qayta urinib ko'ring");
-      
-    }
 });
 
 bot.on('text', async (ctx) => {
     try {
-      if (isSurah) {
-        let surahNumber = parseInt(ctx.message.text);
-        if (isNaN(surahNumber)) {
+        if (isSurah) {
+            let surahNumber = parseInt(ctx.message.text);
             let surahName = ctx.message.text.toLowerCase().trim();
-            surahNumber = surahList[surahName] || null;
-        }
 
-        if (!surahNumber || surahNumber < 1 || surahNumber > 114) {
-            return ctx.reply("❌ Iltimos, 1 dan 114 gacha bo‘lgan sura raqamini yoki to‘g‘ri nomini kiriting!");
-        }
+            if (isNaN(surahNumber)) {
+                surahNumber = surahList[surahName] || null;
+            }
 
-        const audioUrl = await surahGet(surahNumber);
+            if (!surahNumber || surahNumber < 1 || surahNumber > 114) {
+                return ctx.reply("❌ Iltimos, 1 dan 114 gacha bo‘lgan sura raqamini yoki to‘g‘ri nomini kiriting!");
+            }
 
-        if (audioUrl) {
-            ctx.replyWithAudio(audioUrl, { caption: `📖 ${surahNumber}-sura tinglash:` });
+            let surahNameFromList = Object.keys(surahList).find(key => surahList[key] === surahNumber);
+            surahNameFromList = surahNameFromList ? surahNameFromList.toUpperCase() : `Sura ${surahNumber}`;
+
+            const audioUrl = await surahGet(surahNumber);
+
+            if (audioUrl) {
+                ctx.replyWithAudio(audioUrl, { caption: `📖 *${surahNameFromList}* tinglash:` });
+            } else {
+                ctx.reply("❌ Sura topilmadi yoki serverda xatolik yuz berdi.");
+            }
         } else {
-            ctx.reply("❌ Sura topilmadi yoki serverda xatolik yuz berdi.");
-        }
-    } else {
-        const ayahNumber = parseInt(ctx.message.text);
-        if (isNaN(ayahNumber) || ayahNumber < 1 || ayahNumber > 6236) {
-            return ctx.reply("❌ Iltimos, 1 dan 6236 gacha bo‘lgan oyat raqamini kiriting!");
-        }
+            const ayahNumber = parseInt(ctx.message.text);
+            if (isNaN(ayahNumber) || ayahNumber < 1 || ayahNumber > 6236) {
+                return ctx.reply("❌ Iltimos, 1 dan 6236 gacha bo‘lgan oyat raqamini kiriting!");
+            }
 
-        const audioUrl = await ayahGet(ayahNumber);
+            const ayahData = await ayahGet(ayahNumber);
 
-        if (audioUrl) {
-            ctx.replyWithAudio(audioUrl, { caption: `📜 ${ayahNumber}-oyat tinglash:` });
-        } else {
-            ctx.reply("❌ Oyat topilmadi yoki serverda xatolik yuz berdi.");
+            if (ayahData) {
+                const surahNumber = ayahData.surah.number;
+                const surahName = ayahData.surah.englishName;
+                const audioUrl = ayahData.audio;
+
+                ctx.replyWithAudio(audioUrl, { caption: `📜 *${surahName}* surasidan ${ayahNumber}-oyat:` });
+            } else {
+                ctx.reply("❌ Oyat topilmadi yoki serverda xatolik yuz berdi.");
+            }
         }
-    }
     } catch (error) {
-      console.log(error.message);
-      ctx.reply("Serverda xatolik yuz berdi. Iltimos keyinroq qayta urinib ko'ring");
-       
+        console.log(error.message);
+        ctx.reply("Serverda xatolik yuz berdi. Iltimos keyinroq qayta urinib ko'ring.");
     }
 });
 
