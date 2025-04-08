@@ -2,7 +2,7 @@
 const { Telegraf, Markup } = require('telegraf');
 const axios = require('axios');
 
-const token = '7312724138:AAHN4sU23VVKucKbVZhKB41M3FoWoNwjiIo'; 
+const token = '7312724138:AAH-HYwmdWeZ8bUZgFXtmx2VSmvDlQvyl4w'; 
 const bot = new Telegraf(token);
 
 let isSurah = false;
