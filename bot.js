@@ -51,7 +51,20 @@ async function ayahGet(ayah) {
     }
 }
 
+async function namozVaqt() {
+    try {
+        const response =
+            await axios.get(`https://api.aladhan.com/v1/timingsByCity?city=Tashkent&country=Uzbekistan&method=2`);
+        console.log(response);
+        
+    } catch (error) {
+        
+    }
+}
+
 bot.start((ctx) => {
+    console.log(ctx.from.phone);
+    
     ctx.reply(
         "📖 *Xush kelibsiz!* Ushbu bot orqali Qur’on oyatlarini va suralarini eshitishingiz mumkin. 👇",
         Markup.keyboard([["📖 Suralar", "📜 Oyatlar"]]).resize()
