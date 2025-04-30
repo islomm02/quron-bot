@@ -56,9 +56,9 @@ async function namozVaqt() {
         const response =
             await axios.get(`https://api.aladhan.com/v1/timingsByCity?city=Tashkent&country=Uzbekistan&method=2`);
         console.log(response);
-        
+        return response.data
     } catch (error) {
-        
+        return "Xatolik yuz berdi"
     }
 }
 
@@ -67,7 +67,7 @@ bot.start((ctx) => {
     
     ctx.reply(
         "📖 *Xush kelibsiz!* Ushbu bot orqali Qur’on oyatlarini va suralarini eshitishingiz mumkin. 👇",
-        Markup.keyboard([["📖 Suralar", "📜 Oyatlar"]]).resize()
+        Markup.keyboard([["📖 Suralar", "📜 Oyatlar"], ["Namoz Vaqtlari⌛"]]).resize()
     );
 });
 
@@ -79,6 +79,10 @@ bot.hears("📖 Suralar", (ctx) => {
 bot.hears("📜 Oyatlar", (ctx) => {
     ctx.reply("📜 Iltimos, kerakli oyat raqamini yuboring (1-6236).");
     isSurah = false;
+});
+
+bot.hears("Namoz Vaqtlari⌛",async (ctx) => {
+  await ctx.reply(namozVaqt())
 });
 
 bot.on('text', async (ctx) => {
